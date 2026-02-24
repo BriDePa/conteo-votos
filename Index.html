@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema Electoral</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- SIDEBAR NAV -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">⬡</div>
+      <div>
+        <div class="logo-name">VotoClaro</div>
+        <div class="logo-version">Pro v2.0</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="candidates">
+        <span class="nav-icon">👥</span>
+        <span>Candidatos</span>
+        <span class="nav-badge" id="badgeCandidates">0</span>
+      </button>
+      <button class="nav-item" data-view="anforas">
+        <span class="nav-icon">🗳</span>
+        <span>Ánforas</span>
+        <span class="nav-badge" id="badgeAnforas">0</span>
+      </button>
+      <button class="nav-item" data-view="ingreso">
+        <span class="nav-icon">✏️</span>
+        <span>Ingreso de Datos</span>
+      </button>
+      <button class="nav-item" data-view="stats">
+        <span class="nav-icon">📊</span>
+        <span>Estadísticas</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-reset-all" id="resetAllBtn">↺ Reiniciar Todo</button>
+      <p class="sidebar-note">Datos guardados localmente</p>
+    </div>
+  </aside>
+
+  <!-- MOBILE TOPBAR -->
+  <div class="topbar" id="topbar">
+    <button class="menu-btn" id="menuBtn">☰</button>
+    <span class="topbar-title">VotoClaro Pro</span>
+    <span></span>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="content" id="content">
+
+    <!-- ========== VIEW: CANDIDATOS ========== -->
+    <section class="view active" id="view-candidates">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Candidatos</h1>
+          <p class="view-sub">Registra los candidatos que participarán en la elección.</p>
+        </div>
+      </div>
+
+      <div class="card form-card">
+        <h2 class="card-title">Agregar Candidato</h2>
+        <form id="formCandidate" novalidate>
+          <div class="field-row">
+            <div class="field">
+              <label class="label" for="inpCandName">Nombre completo</label>
+              <input class="input" id="inpCandName" type="text" placeholder="Ej. María González" maxlength="80" autocomplete="off" />
+            </div>
+            <div class="field field-sm">
+              <label class="label" for="inpCandParty">Partido / Lista</label>
+              <input class="input" id="inpCandParty" type="text" placeholder="Ej. Partido X" maxlength="60" autocomplete="off" />
+            </div>
+            <div class="field field-xs">
+              <label class="label">&nbsp;</label>
+              <button class="btn btn-primary" type="submit">+ Agregar</button>
+            </div>
+          </div>
+          <p class="error-msg" id="errCandidate"></p>
+        </form>
+      </div>
+
+      <div class="table-card card" id="candidatesTableWrap">
+        <div class="table-header">
+          <h2 class="card-title">Lista de Candidatos</h2>
+          <span class="count-badge" id="countCandidates">0 registrados</span>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table" id="candidatesTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Candidato</th>
+                <th>Partido / Lista</th>
+                <th>Total Votos</th>
+                <th>% del total</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="candidatesTbody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyCandidates">
+            <span>👥</span>
+            <p>Sin candidatos registrados</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== VIEW: ÁNFORAS ========== -->
+    <section class="view" id="view-anforas">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Ánforas</h1>
+          <p class="view-sub">Administra las ánforas (mesas de votación) del proceso electoral.</p>
+        </div>
+      </div>
+
+      <div class="card form-card">
+        <h2 class="card-title">Agregar Ánfora</h2>
+        <form id="formAnfora" novalidate>
+          <div class="field-row">
+            <div class="field">
+              <label class="label" for="inpAnfName">Nombre / Código del Ánfora</label>
+              <input class="input" id="inpAnfName" type="text" placeholder="Ej. Ánfora 01 — Colegio Central" maxlength="80" autocomplete="off" />
+            </div>
+            <div class="field field-sm">
+              <label class="label" for="inpAnfLocation">Ubicación</label>
+              <input class="input" id="inpAnfLocation" type="text" placeholder="Ej. Zona Norte" maxlength="60" autocomplete="off" />
+            </div>
+            <div class="field field-xs">
+              <label class="label" for="inpAnfTotal">Habilitados</label>
+              <input class="input" id="inpAnfTotal" type="number" placeholder="0" min="0" max="99999" />
+            </div>
+            <div class="field field-xs">
+              <label class="label">&nbsp;</label>
+              <button class="btn btn-primary" type="submit">+ Agregar</button>
+            </div>
+          </div>
+          <p class="error-msg" id="errAnfora"></p>
+        </form>
+      </div>
+
+      <div class="table-card card" id="anforasTableWrap">
+        <div class="table-header">
+          <h2 class="card-title">Lista de Ánforas</h2>
+          <span class="count-badge" id="countAnforas">0 registradas</span>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table" id="anforasTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Ánfora</th>
+                <th>Ubicación</th>
+                <th>Habilitados</th>
+                <th>Votos Ingresados</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="anforasTbody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyAnforas">
+            <span>🗳</span>
+            <p>Sin ánforas registradas</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== VIEW: INGRESO DE DATOS ========== -->
+    <section class="view" id="view-ingreso">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Ingreso de Datos</h1>
+          <p class="view-sub">Selecciona un ánfora e ingresa los votos por candidato.</p>
+        </div>
+      </div>
+
+      <div class="card form-card">
+        <h2 class="card-title">Seleccionar Ánfora</h2>
+        <div class="field-row">
+          <div class="field">
+            <label class="label" for="selectAnfora">Ánfora</label>
+            <select class="input" id="selectAnfora">
+              <option value="">— Selecciona un ánfora —</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="ingresoForm" class="hidden">
+        <div class="card">
+          <div class="anfora-info-bar" id="anforaInfoBar"></div>
+          <h2 class="card-title" style="margin-top:20px">Votos por Candidato</h2>
+          <p class="view-sub" style="margin-bottom:16px">Ingresa los votos obtenidos por cada candidato en esta ánfora.</p>
+
+          <div id="voteInputsGrid" class="vote-inputs-grid"></div>
+
+          <div class="field-row" style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+            <div class="field field-sm">
+              <label class="label" for="inpVotosBlancos">Votos en Blanco</label>
+              <input class="input" id="inpVotosBlancos" type="number" min="0" value="0" />
+            </div>
+            <div class="field field-sm">
+              <label class="label" for="inpVotosNulos">Votos Nulos</label>
+              <input class="input" id="inpVotosNulos" type="number" min="0" value="0" />
+            </div>
+            <div class="field field-sm">
+              <label class="label">Total Computado</label>
+              <div class="computed-total" id="computedTotal">0 votos</div>
+            </div>
+          </div>
+
+          <p class="error-msg" id="errIngreso"></p>
+
+          <div class="btn-row" style="margin-top:20px">
+            <button class="btn btn-primary" id="btnSaveIngreso">💾 Guardar Ánfora</button>
+            <button class="btn btn-outline" id="btnClearIngreso">✕ Limpiar</button>
+          </div>
+        </div>
+
+        <!-- Results of this anfora -->
+        <div class="card" id="anforaResultCard" style="display:none">
+          <div class="table-header">
+            <h2 class="card-title">Datos guardados de esta ánfora</h2>
+            <button class="btn btn-sm btn-warning" id="btnEditAnfora">✏️ Editar</button>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table" id="anforaResultTable">
+              <thead><tr><th>Candidato</th><th>Votos</th><th>%</th></tr></thead>
+              <tbody id="anforaResultTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="ingresoEmpty">
+        <div class="empty-state">
+          <span>✏️</span>
+          <p>Selecciona un ánfora para ingresar votos</p>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px">Primero agrega candidatos y ánforas en las secciones correspondientes.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== VIEW: ESTADÍSTICAS ========== -->
+    <section class="view" id="view-stats">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Estadísticas</h1>
+          <p class="view-sub">Resultados consolidados del proceso electoral.</p>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-outline" id="btnExportCSV">⬇ Exportar CSV</button>
+          <button class="btn btn-primary" id="btnExportHTML">🖨 Exportar Reporte</button>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-card">
+          <div class="kpi-label">Ánforas Totales</div>
+          <div class="kpi-value" id="kpiAnfTotal">0</div>
+          <div class="kpi-sub" id="kpiAnfSub">0 procesadas</div>
+        </div>
+        <div class="kpi-card accent">
+          <div class="kpi-label">Total Votos Válidos</div>
+          <div class="kpi-value" id="kpiVotosValidos">0</div>
+          <div class="kpi-sub" id="kpiVotosValidosSub">0 habilitados</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Participación</div>
+          <div class="kpi-value" id="kpiParticipacion">0%</div>
+          <div class="kpi-sub" id="kpiParticipacionSub">sobre habilitados</div>
+        </div>
+        <div class="kpi-card gold">
+          <div class="kpi-label">Candidato Líder</div>
+          <div class="kpi-value" id="kpiLider">—</div>
+          <div class="kpi-sub" id="kpiLiderSub">0 votos · 0%</div>
+        </div>
+      </div>
+
+      <!-- Results Table -->
+      <div class="card">
+        <div class="table-header">
+          <h2 class="card-title">Resultados por Candidato</h2>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table results-table" id="resultsTable">
+            <thead>
+              <tr>
+                <th>Pos.</th>
+                <th>Candidato</th>
+                <th>Partido</th>
+                <th>Votos</th>
+                <th>% Válidos</th>
+                <th>% Habilitados</th>
+                <th>Barra</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTbody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyResults">
+            <span>📊</span>
+            <p>Sin datos para mostrar. Ingresa votos en las ánforas primero.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Anfora breakdown -->
+      <div class="card">
+        <div class="table-header">
+          <h2 class="card-title">Detalle por Ánfora</h2>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table" id="anforaBreakTable">
+            <thead>
+              <tr id="anforaBreakHead"></tr>
+            </thead>
+            <tbody id="anforaBreakBody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyBreak">
+            <span>🗳</span>
+            <p>Sin datos de ánforas ingresados.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blancos/Nulos -->
+      <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+        <div class="kpi-card">
+          <div class="kpi-label">Votos en Blanco</div>
+          <div class="kpi-value" id="kpiBlancos">0</div>
+          <div class="kpi-sub" id="kpiBlancosP">0% del total emitido</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Votos Nulos</div>
+          <div class="kpi-value" id="kpiNulos">0</div>
+          <div class="kpi-sub" id="kpiNulosP">0% del total emitido</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Emitido</div>
+          <div class="kpi-value" id="kpiTotalEmitido">0</div>
+          <div class="kpi-sub">válidos + blancos + nulos</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Votos Faltantes</div>
+          <div class="kpi-value" id="kpiFaltantes">0</div>
+          <div class="kpi-sub">ánforas sin procesar</div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- MODAL EDIT CANDIDATE -->
+  <div class="modal-overlay" id="modalEditCand">
+    <div class="modal">
+      <h3>Editar Candidato</h3>
+      <input type="hidden" id="editCandId" />
+      <div class="field" style="margin-top:16px">
+        <label class="label" for="editCandName">Nombre</label>
+        <input class="input" id="editCandName" type="text" maxlength="80" />
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label class="label" for="editCandParty">Partido / Lista</label>
+        <input class="input" id="editCandParty" type="text" maxlength="60" />
+      </div>
+      <p class="error-msg" id="errEditCand"></p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" data-close="modalEditCand">Cancelar</button>
+        <button class="btn btn-primary" id="btnSaveEditCand">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDIT ANFORA -->
+  <div class="modal-overlay" id="modalEditAnf">
+    <div class="modal">
+      <h3>Editar Ánfora</h3>
+      <input type="hidden" id="editAnfId" />
+      <div class="field" style="margin-top:16px">
+        <label class="label" for="editAnfName">Nombre / Código</label>
+        <input class="input" id="editAnfName" type="text" maxlength="80" />
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label class="label" for="editAnfLoc">Ubicación</label>
+        <input class="input" id="editAnfLoc" type="text" maxlength="60" />
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label class="label" for="editAnfTotal">Electores Habilitados</label>
+        <input class="input" id="editAnfTotal" type="number" min="0" />
+      </div>
+      <p class="error-msg" id="errEditAnf"></p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" data-close="modalEditAnf">Cancelar</button>
+        <button class="btn btn-primary" id="btnSaveEditAnf">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRM DELETE -->
+  <div class="modal-overlay" id="modalConfirm">
+    <div class="modal">
+      <h3 id="confirmTitle">¿Confirmar acción?</h3>
+      <p id="confirmMsg" style="margin-top:10px;color:var(--text-muted);font-size:0.88rem;line-height:1.6"></p>
+      <div class="modal-actions" style="margin-top:24px">
+        <button class="btn btn-outline" data-close="modalConfirm">Cancelar</button>
+        <button class="btn btn-danger" id="confirmActionBtn">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
