@@ -649,151 +649,6 @@ const Views = (() => {
    EXPORT
    ========================================================= */
 const Export = (() => {
-  const downloadFile = (filename, content, type) => {
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-  };
-
-  const toCSV = () => {
-    const s = State.getStats();
-    const rows = [];
-    const d = new Date().toLocaleString('es-BO');
-
-    rows.push(['REPORTE ELECTORAL - VotoClaro Pro', '', '', '', '']);
-    rows.push([`Generado: ${d}`, '', '', '', '']);
-    rows.push([]);
-    rows.push(['RESULTADOS POR CANDIDATO', '', '', '', '']);
-    rows.push(['Posición', 'Candidato', 'Partido', 'Votos', '% Válidos', '% Habilitados']);
-
-    s.sorted.forEach((c, i) => {
-      rows.push([
-        i + 1,
-        c.name,
-        c.party || '',
-        c.votes,
-        UI.pct(c.votes, s.totalValidos),
-        UI.pct(c.votes, s.totalHabilitados)
-      ]);
-    });
-
-    rows.push([]);
-    rows.push(['RESUMEN GENERAL', '', '', '', '']);
-    rows.push(['Votos Válidos', s.totalValidos, '', '', '']);
-    rows.push(['Votos en Blanco', s.totalBlancos, '', '', '']);
-    rows.push(['Votos Nulos', s.totalNulos, '', '', '']);
-    rows.push(['Total Emitido', s.totalEmitido, '', '', '']);
-    rows.push(['Total Habilitados', s.totalHabilitados, '', '', '']);
-    rows.push(['Participación', s.participacion.toFixed(2) + '%', '', '', '']);
-    rows.push([]);
-    rows.push(['DETALLE POR ÁNFORA', '', '', '', '']);
-
-    const processedAnforas = s.anforas.filter(a => s.results[a.id]);
-    if (processedAnforas.length > 0) {
-      const header = ['Ánfora', 'Ubicación', ...s.candidates.map(c => c.name), 'Blanco', 'Nulos', 'Total'];
-      rows.push(header);
-      processedAnforas.forEach(a => {
-        const r = s.results[a.id];
-        let total = 0;
-        const row = [a.name, a.location];
-        s.candidates.forEach(c => {
-          const v = r[c.id] || 0;
-          total += v;
-          row.push(v);
-        });
-        const b = r.blancos || 0, n = r.nulos || 0;
-        total += b + n;
-        row.push(b, n, total);
-        rows.push(row);
-      });
-    }
-
-    const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const BOM = '\uFEFF';
-    downloadFile(`votoclaro_reporte_${Date.now()}.csv`, BOM + csv, 'text/csv;charset=utf-8');
-  };
-
-  const toHTML = () => {
-    const s = State.getStats();
-    const d = new Date().toLocaleString('es-BO');
-
-    const candidateRows = s.sorted.map((c, i) => `
-      <tr style="${i === 0 ? 'background:#fefce8' : ''}">
-        <td style="font-weight:700;color:${i === 0 ? '#c9920a' : '#666'}">${i === 0 ? '★ 1°' : `${i + 1}°`}</td>
-        <td style="font-weight:600">${esc(c.name)}</td>
-        <td style="color:#666">${esc(c.party || '—')}</td>
-        <td style="font-weight:700">${UI.fmt(c.votes)}</td>
-        <td>${UI.pct(c.votes, s.totalValidos)}</td>
-        <td>${UI.pct(c.votes, s.totalHabilitados)}</td>
-      </tr>`).join('');
-
-    const processedAnforas = s.anforas.filter(a => s.results[a.id]);
-    const anforaHeaders = s.candidates.map(c => `<th>${esc(c.name)}</th>`).join('');
-    const anforaRows = processedAnforas.map(a => {
-      const r = s.results[a.id];
-      let total = 0;
-      const cells = s.candidates.map(c => {
-        const v = r[c.id] || 0; total += v; return `<td>${UI.fmt(v)}</td>`;
-      }).join('');
-      const b = r.blancos || 0, n = r.nulos || 0;
-      total += b + n;
-      return `<tr><td style="font-weight:600">${esc(a.name)}</td><td style="color:#666">${esc(a.location || '—')}</td>${cells}<td>${UI.fmt(b)}</td><td>${UI.fmt(n)}</td><td style="font-weight:700">${UI.fmt(total)}</td></tr>`;
-    }).join('');
-
-    const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Reporte Electoral — VotoClaro Pro</title>
-<style>
-body{font-family:'Segoe UI',Arial,sans-serif;color:#13162a;background:#f4f5f8;margin:0;padding:0}
-.page{max-width:1100px;margin:0 auto;padding:40px 32px}
-h1{font-size:2rem;margin-bottom:4px;color:#0e1229}
-.sub{color:#5c6282;font-size:0.9rem;margin-bottom:32px}
-.kpi-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:32px}
-.kpi{flex:1;min-width:160px;background:#fff;border:1px solid #e2e4ec;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.kpi-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#5c6282;margin-bottom:8px}
-.kpi-value{font-size:1.8rem;font-weight:700;color:#0e1229}
-.kpi.accent{background:#2153e8;border-color:#1440c4}
-.kpi.accent .kpi-label,.kpi.accent .kpi-value{color:#fff}
-.kpi.gold{background:linear-gradient(135deg,#fdf6e3,#fef9ee);border-color:rgba(201,146,10,.2)}
-.kpi.gold .kpi-value{color:#c9920a}
-h2{font-size:1.1rem;font-weight:700;margin:28px 0 14px;color:#0e1229}
-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e2e4ec;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
-th{text-align:left;padding:10px 14px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#5c6282;background:#f0f1f6;border-bottom:1px solid #e2e4ec}
-td{padding:12px 14px;border-bottom:1px solid #e2e4ec;font-size:.88rem}
-tr:last-child td{border-bottom:none}
-.footer{margin-top:40px;color:#a0a6bf;font-size:0.75rem;text-align:center}
-</style></head><body>
-<div class="page">
-  <h1>⬡ Reporte Electoral</h1>
-  <p class="sub">VotoClaro Pro · Generado: ${d}</p>
-
-  <div class="kpi-row">
-    <div class="kpi"><div class="kpi-label">Ánforas</div><div class="kpi-value">${s.anforas.length}</div></div>
-    <div class="kpi accent"><div class="kpi-label">Votos Válidos</div><div class="kpi-value">${UI.fmt(s.totalValidos)}</div></div>
-    <div class="kpi"><div class="kpi-label">Participación</div><div class="kpi-value">${s.participacion.toFixed(1)}%</div></div>
-    <div class="kpi gold"><div class="kpi-label">Candidato Líder</div><div class="kpi-value" style="font-size:1.2rem">${esc(s.sorted[0]?.name || '—')}</div></div>
-    <div class="kpi"><div class="kpi-label">Blancos</div><div class="kpi-value">${UI.fmt(s.totalBlancos)}</div></div>
-    <div class="kpi"><div class="kpi-label">Nulos</div><div class="kpi-value">${UI.fmt(s.totalNulos)}</div></div>
-  </div>
-
-  <h2>Resultados por Candidato</h2>
-  <table><thead><tr><th>Pos.</th><th>Candidato</th><th>Partido</th><th>Votos</th><th>% Válidos</th><th>% Habilitados</th></tr></thead>
-  <tbody>${candidateRows}</tbody></table>
-
-  ${processedAnforas.length > 0 ? `
-  <h2>Detalle por Ánfora</h2>
-  <table><thead><tr><th>Ánfora</th><th>Ubicación</th>${anforaHeaders}<th>Blanco</th><th>Nulos</th><th>Total</th></tr></thead>
-  <tbody>${anforaRows}</tbody></table>` : ''}
-
-  <div class="footer">Reporte generado con VotoClaro Pro · Uso exclusivo oficial · ${d}</div>
-</div></body></html>`;
-
-    downloadFile(`votoclaro_reporte_${Date.now()}.html`, html, 'text/html;charset=utf-8');
-  };
 
   const esc = (str) => String(str)
     .replace(/&/g, '&amp;')
@@ -801,7 +656,398 @@ tr:last-child td{border-bottom:none}
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-  return { toCSV, toHTML };
+  const toPDF = () => {
+    const s = State.getStats();
+    const d = new Date().toLocaleString('es-BO');
+    const maxVotes = s.sorted[0]?.votes || 1;
+
+    /* ---- KPI boxes ---- */
+    const kpis = [
+      { label: 'Ánforas Totales',    value: s.anforas.length,              sub: `${s.anforasProcesadas} procesadas`, cls: '' },
+      { label: 'Votos Válidos',       value: UI.fmt(s.totalValidos),        sub: `${UI.fmt(s.totalHabilitados)} habilitados`, cls: 'accent' },
+      { label: 'Participación',       value: s.participacion.toFixed(1)+'%', sub: 'sobre habilitados', cls: '' },
+      { label: 'Candidato Líder',     value: esc(s.sorted[0]?.name || '—'), sub: `${UI.fmt(s.sorted[0]?.votes||0)} votos · ${UI.pct(s.sorted[0]?.votes||0, s.totalValidos)}`, cls: 'gold' },
+      { label: 'Votos en Blanco',     value: UI.fmt(s.totalBlancos),        sub: UI.pct(s.totalBlancos, s.totalEmitido)+' del emitido', cls: '' },
+      { label: 'Votos Nulos',         value: UI.fmt(s.totalNulos),          sub: UI.pct(s.totalNulos, s.totalEmitido)+' del emitido', cls: '' },
+      { label: 'Total Emitido',       value: UI.fmt(s.totalEmitido),        sub: 'válidos + blancos + nulos', cls: '' },
+      { label: 'Ánforas Pendientes',  value: s.anforasFaltantes,            sub: 'sin procesar', cls: s.anforasFaltantes > 0 ? 'warn' : '' },
+    ];
+
+    const kpiHTML = kpis.map(k => `
+      <div class="kpi ${k.cls}">
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-value">${k.value}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      </div>`).join('');
+
+    /* ---- Results rows ---- */
+    const resultRows = s.sorted.map((c, i) => {
+      const barW = maxVotes > 0 ? Math.max(2, Math.round((c.votes / maxVotes) * 100)) : 0;
+      const isLeader = i === 0 && c.votes > 0;
+      return `
+        <tr class="${isLeader ? 'leader-row' : ''}">
+          <td class="rank ${isLeader ? 'rank-gold' : ''}">${isLeader ? '★ 1°' : `${i+1}°`}</td>
+          <td class="name">${esc(c.name)}</td>
+          <td class="muted">${esc(c.party || '—')}</td>
+          <td class="num">${UI.fmt(c.votes)}</td>
+          <td class="num">${UI.pct(c.votes, s.totalValidos)}</td>
+          <td class="num">${UI.pct(c.votes, s.totalHabilitados)}</td>
+          <td class="bar-cell">
+            <div class="bar-wrap"><div class="bar-fill ${isLeader ? 'bar-gold' : ''}" style="width:${barW}%"></div></div>
+            <span class="bar-pct">${UI.pct(c.votes, s.totalValidos)}</span>
+          </td>
+        </tr>`;
+    }).join('');
+
+    /* ---- Anfora breakdown ---- */
+    const processedAnforas = s.anforas.filter(a => s.results[a.id]);
+    let anforaSection = '';
+    if (processedAnforas.length > 0) {
+      const candHeaders = s.candidates.map(c => `<th>${esc(c.name.length > 12 ? c.name.slice(0,11)+'…' : c.name)}</th>`).join('');
+      const anforaRows = processedAnforas.map(a => {
+        const r = s.results[a.id];
+        let rowTotal = 0;
+        const cells = s.candidates.map(c => {
+          const v = r[c.id] || 0; rowTotal += v;
+          return `<td class="num">${UI.fmt(v)}</td>`;
+        }).join('');
+        const b = r.blancos || 0, n = r.nulos || 0;
+        rowTotal += b + n;
+        return `<tr>
+          <td class="name">${esc(a.name)}</td>
+          <td class="muted">${esc(a.location || '—')}</td>
+          ${cells}
+          <td class="num">${UI.fmt(b)}</td>
+          <td class="num">${UI.fmt(n)}</td>
+          <td class="num bold">${UI.fmt(rowTotal)}</td>
+        </tr>`;
+      }).join('');
+
+      anforaSection = `
+        <div class="section-break">
+          <h2>Detalle por Ánfora</h2>
+          <table>
+            <thead><tr>
+              <th>Ánfora</th><th>Ubicación</th>
+              ${candHeaders}
+              <th>Blanco</th><th>Nulos</th><th>Total</th>
+            </tr></thead>
+            <tbody>${anforaRows}</tbody>
+          </table>
+        </div>`;
+    }
+
+    /* ---- Full HTML document ---- */
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Reporte Electoral — VotoClaro Pro</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', 'Segoe UI', Arial, sans-serif;
+      background: #fff;
+      color: #13162a;
+      font-size: 11pt;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page { max-width: 210mm; margin: 0 auto; padding: 14mm 14mm 10mm; }
+
+    /* --- Header --- */
+    .report-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #2153e8;
+      margin-bottom: 20px;
+    }
+    .report-logo { display: flex; align-items: center; gap: 10px; }
+    .logo-hex { font-size: 28px; color: #2153e8; line-height: 1; }
+    .logo-text-main { font-size: 16pt; font-weight: 700; color: #0e1229; letter-spacing: -0.02em; }
+    .logo-text-sub { font-size: 7.5pt; color: #5c6282; text-transform: uppercase; letter-spacing: 0.06em; }
+    .report-meta { text-align: right; }
+    .report-title { font-size: 13pt; font-weight: 700; color: #0e1229; }
+    .report-date { font-size: 8pt; color: #5c6282; margin-top: 3px; }
+
+    /* --- KPI Grid --- */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .kpi {
+      border: 1px solid #e2e4ec;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #f8f9fc;
+    }
+    .kpi.accent { background: #2153e8; border-color: #1440c4; }
+    .kpi.gold { background: linear-gradient(135deg, #fdf6e3, #fef9ee); border-color: #e8d89a; }
+    .kpi.warn { background: #fff8ed; border-color: #f0d080; }
+    .kpi-label {
+      font-size: 6.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #5c6282;
+      margin-bottom: 5px;
+    }
+    .kpi.accent .kpi-label { color: rgba(255,255,255,0.75); }
+    .kpi.gold .kpi-label { color: #a07010; }
+    .kpi-value {
+      font-size: 16pt;
+      font-weight: 700;
+      color: #0e1229;
+      line-height: 1;
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .kpi.accent .kpi-value { color: #fff; }
+    .kpi.gold .kpi-value { color: #b07800; }
+    .kpi-sub { font-size: 7pt; color: #6b7491; }
+    .kpi.accent .kpi-sub { color: rgba(255,255,255,0.65); }
+
+    /* --- Section titles --- */
+    h2 {
+      font-size: 9pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #5c6282;
+      margin-bottom: 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #e2e4ec;
+    }
+
+    /* --- Tables --- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9pt;
+      margin-bottom: 6px;
+    }
+    thead tr { background: #f0f1f6; }
+    th {
+      text-align: left;
+      padding: 7px 10px;
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #5c6282;
+      border-bottom: 2px solid #e2e4ec;
+      white-space: nowrap;
+    }
+    td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #eef0f6;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr.leader-row { background: #fffdf0; }
+
+    td.rank { font-weight: 700; color: #8890aa; font-size: 8.5pt; white-space: nowrap; }
+    td.rank-gold { color: #c9920a !important; }
+    td.name { font-weight: 600; }
+    td.muted { color: #6b7491; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    td.bold { font-weight: 700; }
+
+    /* Bar */
+    td.bar-cell { min-width: 90px; }
+    .bar-wrap {
+      background: #eef0f6;
+      border-radius: 99px;
+      height: 6px;
+      overflow: hidden;
+      display: inline-block;
+      width: 70px;
+      vertical-align: middle;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: #2153e8;
+      display: block;
+    }
+    .bar-fill.bar-gold { background: #c9920a; }
+    .bar-pct {
+      font-size: 7.5pt;
+      color: #6b7491;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+
+    /* --- Separator --- */
+    .section-break { margin-top: 20px; }
+
+    /* --- Footer --- */
+    .report-footer {
+      margin-top: 18px;
+      padding-top: 10px;
+      border-top: 1px solid #e2e4ec;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-left { font-size: 7.5pt; color: #a0a6bf; }
+    .footer-right { font-size: 7.5pt; color: #a0a6bf; text-align: right; }
+
+    /* --- Print button (screen only) --- */
+    .print-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: #0e1229;
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      z-index: 999;
+      font-size: 13px;
+      font-family: 'Outfit', 'Segoe UI', sans-serif;
+    }
+    .print-bar-info { color: rgba(255,255,255,0.7); font-size: 12px; }
+    .print-btn {
+      background: #2153e8;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 9px 22px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.01em;
+    }
+    .print-btn:hover { background: #1440c4; }
+    .close-btn {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 7px;
+      padding: 9px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .close-btn:hover { background: rgba(255,255,255,0.18); }
+
+    @media screen {
+      body { background: #e8eaf0; padding-top: 56px; }
+      .page {
+        background: #fff;
+        box-shadow: 0 4px 32px rgba(0,0,0,0.12);
+        margin: 20px auto 40px;
+        border-radius: 6px;
+      }
+    }
+
+    @media print {
+      .print-bar { display: none !important; }
+      body { background: #fff; padding-top: 0; }
+      .page { padding: 10mm; box-shadow: none; border-radius: 0; }
+      .section-break { page-break-inside: avoid; }
+      table { page-break-inside: auto; }
+      thead { display: table-header-group; }
+      tr { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-bar">
+    <span>⬡ <strong>VotoClaro Pro</strong> — Reporte Electoral</span>
+    <span class="print-bar-info">Usa "Guardar como PDF" en el diálogo de impresión para exportar el archivo</span>
+    <div style="display:flex;gap:10px">
+      <button class="close-btn" onclick="window.close()">✕ Cerrar</button>
+      <button class="print-btn" onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+    </div>
+  </div>
+
+  <div class="page">
+
+    <div class="report-header">
+      <div class="report-logo">
+        <div class="logo-hex">⬡</div>
+        <div>
+          <div class="logo-text-main">VotoClaro Pro</div>
+          <div class="logo-text-sub">Sistema Electoral de Ánforas</div>
+        </div>
+      </div>
+      <div class="report-meta">
+        <div class="report-title">Reporte Electoral Oficial</div>
+        <div class="report-date">Generado: ${d}</div>
+      </div>
+    </div>
+
+    <div class="kpi-grid">${kpiHTML}</div>
+
+    <h2>Resultados por Candidato</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Pos.</th>
+          <th>Candidato</th>
+          <th>Partido / Lista</th>
+          <th style="text-align:right">Votos</th>
+          <th style="text-align:right">% Válidos</th>
+          <th style="text-align:right">% Habilitados</th>
+          <th>Proporción</th>
+        </tr>
+      </thead>
+      <tbody>${resultRows}</tbody>
+    </table>
+
+    ${anforaSection}
+
+    <div class="report-footer">
+      <div class="footer-left">
+        VotoClaro Pro · Documento generado automáticamente · Uso oficial exclusivo
+      </div>
+      <div class="footer-right">
+        Total emitido: ${UI.fmt(s.totalEmitido)} ·
+        Habilitados: ${UI.fmt(s.totalHabilitados)} ·
+        Participación: ${s.participacion.toFixed(2)}%
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Auto-trigger print dialog after fonts load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        // Don't auto-print, let user click the button
+      }, 300);
+    });
+  </script>
+
+</body>
+</html>`;
+
+    const win = window.open('', '_blank');
+    if (!win) {
+      alert('El navegador bloqueó la ventana emergente. Permite las ventanas emergentes para este archivo y vuelve a intentarlo.');
+      return;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  };
+
+  return { toPDF };
 })();
 
 /* =========================================================
@@ -1017,8 +1263,7 @@ const Events = (() => {
     });
 
     /* --- Export --- */
-    $('btnExportCSV').addEventListener('click', Export.toCSV);
-    $('btnExportHTML').addEventListener('click', Export.toHTML);
+    $('btnExportPDF').addEventListener('click', Export.toPDF);
 
     /* --- Clear errors on input --- */
     document.querySelectorAll('.input').forEach(inp => {
