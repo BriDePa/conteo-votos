@@ -811,6 +811,36 @@ const Events = (() => {
   const $ = UI.$;
 
   const init = () => {
+    /* --- Mobile menu setup (MUST be defined first) --- */
+    const sidebar = $('sidebar');
+    const backdrop = $('sidebarBackdrop');
+    const menuBtn = $('menuBtn');
+
+    const openSidebar = () => {
+      sidebar.classList.add('open');
+      backdrop.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeSidebar = () => {
+      sidebar.classList.remove('open');
+      backdrop.classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    // Use both click and touchend for maximum mobile compatibility
+    const handleMenuBtn = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    };
+
+    menuBtn.addEventListener('click', handleMenuBtn);
+    menuBtn.addEventListener('touchend', handleMenuBtn, { passive: false });
+
+    backdrop.addEventListener('click', closeSidebar);
+    backdrop.addEventListener('touchend', (e) => { e.preventDefault(); closeSidebar(); }, { passive: false });
+
     /* --- Navigation --- */
     document.querySelectorAll('.nav-item').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -819,16 +849,9 @@ const Events = (() => {
         btn.classList.add('active');
         const view = $(`view-${btn.dataset.view}`);
         if (view) view.classList.add('active');
-        // Refresh stats on navigate
         if (btn.dataset.view === 'stats') Views.renderStats();
-        // Close sidebar on mobile
-        $('sidebar').classList.remove('open');
+        closeSidebar();
       });
-    });
-
-    /* --- Mobile menu --- */
-    $('menuBtn').addEventListener('click', () => {
-      $('sidebar').classList.toggle('open');
     });
 
     /* --- Add Candidate --- */
@@ -989,7 +1012,7 @@ const Events = (() => {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         document.querySelectorAll('.modal-overlay.visible').forEach(m => UI.hideModal(m.id));
-        $('sidebar').classList.remove('open');
+        closeSidebar();
       }
     });
 

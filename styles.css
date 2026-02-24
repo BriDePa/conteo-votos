@@ -82,8 +82,8 @@ body {
   top: 0;
   left: 0;
   bottom: 0;
-  z-index: 50;
-  transition: transform var(--transition);
+  z-index: 249;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar-logo {
@@ -221,10 +221,11 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 60;
+  height: 54px;
+  z-index: 300;
   background: var(--sidebar-bg);
   color: #fff;
-  padding: 14px 16px;
+  padding: 0 16px;
   align-items: center;
   justify-content: space-between;
   font-weight: 600;
@@ -233,12 +234,33 @@ body {
 }
 
 .menu-btn {
-  background: none;
-  border: none;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
   color: #fff;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   cursor: pointer;
-  padding: 2px 6px;
+  padding: 6px 12px;
+  line-height: 1;
+  border-radius: 8px;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.menu-btn:hover { background: rgba(255,255,255,0.18); }
+.menu-btn:active { background: rgba(255,255,255,0.28); }
+
+/* Sidebar overlay backdrop (mobile) */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 248;
+  background: rgba(0,0,0,0.55);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 /* ============================================================
@@ -735,6 +757,7 @@ select.input {
   flex-wrap: wrap;
 }
 
+.aib-item { }
 .aib-label {
   font-size: 0.68rem;
   font-weight: 700;
@@ -851,18 +874,21 @@ tr.new-row { animation: slideIn 0.25s ease; }
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
+    top: 54px; /* below topbar */
   }
 
   .sidebar.open {
     transform: translateX(0);
-    box-shadow: 4px 0 32px rgba(0,0,0,0.35);
+    box-shadow: 4px 0 32px rgba(0,0,0,0.45);
   }
 
   .topbar { display: flex; }
 
+  .sidebar-backdrop.active { display: block; }
+
   .content {
     margin-left: 0;
-    padding: 80px 16px 32px;
+    padding: 74px 16px 32px;
   }
 
   .view-title { font-size: 1.5rem; }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema Electoral</title>
+  <title>VotoClaro Pro — Sistema Electoral</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -45,10 +45,13 @@
 
   <!-- MOBILE TOPBAR -->
   <div class="topbar" id="topbar">
-    <button class="menu-btn" id="menuBtn">☰</button>
+    <button class="menu-btn" id="menuBtn" aria-label="Abrir menú">☰</button>
     <span class="topbar-title">VotoClaro Pro</span>
     <span></span>
   </div>
+
+  <!-- SIDEBAR BACKDROP -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
   <!-- MAIN CONTENT -->
   <main class="content" id="content">
@@ -239,7 +242,7 @@
         </div>
       </div>
 
-      <div class="card" id="ingresoEmpty">
+      <div class="card" id="ingresoEmpty" style="">
         <div class="empty-state">
           <span>✏️</span>
           <p>Selecciona un ánfora para ingresar votos</p>
@@ -378,9 +381,8 @@
         <button class="btn btn-primary" id="btnSaveEditCand">Guardar</button>
       </div>
     </div>
-  </div> 
+  </div>
 
-  
   <!-- MODAL EDIT ANFORA -->
   <div class="modal-overlay" id="modalEditAnf">
     <div class="modal">
