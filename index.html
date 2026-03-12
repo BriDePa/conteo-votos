@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>VotoClaro Pro — Sistema Electoral</title>
+  <title>Movimiento Tercer Sistema — Sistema de Cómputo Electoral</title>
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
@@ -11,14 +11,16 @@
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-brand">
-    <svg class="brand-hex" width="32" height="32" viewBox="0 0 32 32" fill="none">
-      <polygon points="16,2 30,9 30,23 16,30 2,23 2,9" fill="none" stroke="#5b8def" stroke-width="2"/>
-      <polygon points="16,8 24,12.5 24,19.5 16,24 8,19.5 8,12.5" fill="#5b8def" opacity="0.2"/>
-      <circle cx="16" cy="16" r="4" fill="#5b8def"/>
+    <svg class="brand-hex" width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <!-- Escudo MTS: triángulo estilizado sobre verde oscuro -->
+      <circle cx="18" cy="18" r="17" fill="rgba(107,191,133,0.1)" stroke="rgba(107,191,133,0.35)" stroke-width="1"/>
+      <polygon points="18,8 28,26 8,26" fill="none" stroke="#6bbf85" stroke-width="1.8" stroke-linejoin="round"/>
+      <polygon points="18,13 24,23 12,23" fill="rgba(107,191,133,0.25)" stroke="none"/>
+      <circle cx="18" cy="18" r="2.5" fill="#6bbf85"/>
     </svg>
     <div>
-      <div class="brand-name">MTS</div>
-      <div class="brand-ver">La Joyita</div>
+      <div class="brand-name">Mov. Tercer Sistema</div>
+      <div class="brand-ver">Cómputo Electoral</div>
     </div>
   </div>
 
@@ -67,7 +69,7 @@
   <button class="hamburger" id="menuBtn" aria-label="Menú">
     <span></span><span></span><span></span>
   </button>
-  <span class="topbar-title">MTS Pro</span>
+  <span class="topbar-title">Tercer Sistema</span>
   <div style="width:44px"></div>
 </div>
 <div class="sbdrop" id="sidebarBackdrop"></div>
@@ -288,7 +290,7 @@
   <!-- ══════════════ ESTADÍSTICAS ══════════════ -->
   <section class="view" id="view-stats">
     <div class="ph">
-      <div><h1 class="ph-title">Estadísticas</h1><p class="ph-sub">Resultados consolidados en tiempo real.</p></div>
+      <div><h1 class="ph-title">Estadísticas</h1><p class="ph-sub">Resultados consolidados del Movimiento Tercer Sistema en tiempo real.</p></div>
       <button class="btn btn-primary" id="btnPDF">📄 Exportar PDF</button>
     </div>
 

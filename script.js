@@ -38,7 +38,7 @@ const State = (() => {
     if (!n) return { ok:false, error:'El nombre no puede estar vacío.' };
     if (D.candidates.some(c => c.name.toLowerCase()===n.toLowerCase()))
       return { ok:false, error:`Ya existe "${n}".` };
-    const c = { id:uid(), name:n, party:party.trim(), alias:alias.trim(), color: color||'#5b8def' };
+    const c = { id:uid(), name:n, party:party.trim(), alias:alias.trim(), color: color||'#1a3d2b' };
     D.candidates.push(c);
     persist();
     return { ok:true, candidate:c };
@@ -634,9 +634,9 @@ const Views = (() => {
   const openEditCand = c => {
     UI.$('editCandId').value=c.id; UI.$('editCandName').value=c.name;
     UI.$('editCandParty').value=c.party||''; UI.$('editCandAlias').value=c.alias||'';
-    UI.$('editCandColor').value=c.color||'#5b8def';
-    UI.$('editCprev').style.background=c.color||'#5b8def';
-    UI.$('editChex').textContent=c.color||'#5b8def';
+    UI.$('editCandColor').value=c.color||'#1a3d2b';
+    UI.$('editCprev').style.background=c.color||'#1a3d2b';
+    UI.$('editChex').textContent=c.color||'#1a3d2b';
     UI.clearErr('errEditCand'); UI.openModal('modalCand');
   };
 
@@ -884,7 +884,7 @@ const Events = (() => {
       const result=State.addCandidate($('iCandName').value,$('iCandParty').value,$('iCandAlias').value,$('iCandColor').value);
       if(!result.ok){UI.setErr('errCandidate',result.error);return;}
       $('iCandName').value=''; $('iCandParty').value=''; $('iCandAlias').value='';
-      $('iCandColor').value='#5b8def'; $('cprev').style.background='#5b8def'; $('chex').textContent='#5b8def';
+      $('iCandColor').value='#1a3d2b'; $('cprev').style.background='#1a3d2b'; $('chex').textContent='#1a3d2b';
       document.querySelectorAll('.sw').forEach(s=>s.classList.remove('selected'));
       $('iCandName').focus();
       Views.renderCandidates(); Views.renderIngresoSelector();
